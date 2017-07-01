@@ -49,8 +49,8 @@ func ExampleDecode() {
 	if actual, expected := string(remainder), " some extra bytes after final quote"; actual != expected {
 		fmt.Printf("Remainder Actual: %#q; Expected: %#q\n", actual, expected)
 	}
-	fmt.Printf("%v", decoded)
-	// Output: ⌘ a
+	fmt.Printf("%#q", decoded)
+	// Output: "\x01⌘ a"
 }
 
 func ExampleEncode() {

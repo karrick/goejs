@@ -15,6 +15,9 @@ documents that seek to clarify some aspects.
 
 ## Usage
 
+Documentation is available via
+[![GoDoc](https://godoc.org/github.com/karrick/goejs?status.svg)](https://godoc.org/github.com/karrick/goejs).
+
 When encoding to JSON this library appends to a pre-existing slice of
 bytes, using the runtime to append to this slice, so it can minimize
 allocations if the byte slice capacity is large enough to accomodate
@@ -22,9 +25,9 @@ the encoded form of the string.
 
 ```Go
 func ExampleEncode() {
-	encoded := goejs.EncodedJSONFromString([]byte("prefix:"), "⌘ a")
-	fmt.Printf("%s", encoded)
-	// Output: prefix:"\u0001\u2318 a"
+    encoded := goejs.EncodedJSONFromString([]byte("prefix:"), "⌘ a")
+    fmt.Printf("%s", encoded)
+    // Output: prefix:"\u0001\u2318 a"
 }
 ```
 
@@ -35,14 +38,14 @@ backing array.
 
 ```Go
 func ExampleDecode() {
-	decoded, remainder, err := goejs.DecodedStringFromJSON([]byte("\"\\u0001\\u2318 a\" some extra bytes after final quote"))
-	if err != nil {
-		fmt.Println(err)
-	}
-	if actual, expected := string(remainder), " some extra bytes after final quote"; actual != expected {
-		fmt.Printf("Remainder Actual: %#q; Expected: %#q\n", actual, expected)
-	}
-	fmt.Printf("%v", decoded)
-	// Output: ⌘ a
+    decoded, remainder, err := goejs.DecodedStringFromJSON([]byte("\"\\u0001\\u2318 a\" some extra bytes after final quote"))
+    if err != nil {
+        fmt.Println(err)
+    }
+    if actual, expected := string(remainder), " some extra bytes after final quote"; actual != expected {
+        fmt.Printf("Remainder Actual: %#q; Expected: %#q\n", actual, expected)
+    }
+    fmt.Printf("%#q", decoded)
+    // Output: "\x01⌘ a"
 }
 ```
