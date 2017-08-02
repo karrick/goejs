@@ -13,15 +13,15 @@ import (
 	"unicode/utf8"
 )
 
-// EncodedJSONFromString appends the JSON encoding of the provided string to the
+// AppendEncodedJSONFromString appends the JSON encoding of the provided string to the
 // provided byte slice, and returns the modified byte slice.
 //
 //    func ExampleEncode() {
-//        encoded := goejs.EncodedJSONFromString([]byte("prefix:"), "⌘ a")
+//        encoded := goejs.AppendEncodedJSONFromString([]byte("prefix:"), "⌘ a")
 //        fmt.Printf("%s", encoded)
 //        // Output: prefix:"\u0001\u2318 a"
 //    }
-func EncodedJSONFromString(buf []byte, someString string) []byte {
+func AppendEncodedJSONFromString(buf []byte, someString string) []byte {
 	buf = append(buf, '"') // prefix buffer with double quote
 	for _, r := range someString {
 		if escaped, ok := escapeSpecialJSON(byte(r)); ok {
