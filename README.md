@@ -12,10 +12,15 @@ How about round-trip encoding float values to and from JSON, including
 support for NaN, -Inf, and +Inf? This library also supports that.
 
 While the [defacto JSON website](http://json.org) only mentions a few
-rules for serializing strings into JSON, there have been many RFC
-documents that seek to clarify some aspects.
+rules for serializing strings into JSON, there have been several
+errata that have been reported, and various RFC documents that seek to
+clarify some aspects of encoding values using JSON.
 
 ## References
+
+* https://tools.ietf.org/html/rfc4627
+* https://tools.ietf.org/html/rfc7158
+* https://tools.ietf.org/html/rfc7159
 
 ## Usage
 
