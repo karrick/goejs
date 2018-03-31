@@ -19,17 +19,17 @@ func floatEnsureBad(tb testing.TB, input, errorMessage, remainder string) {
 func floatEnsureGood(tb testing.TB, input float64, expected string) {
 	buf := goejs.AppendEncodedJSONFromFloat(nil, input)
 	if actual := string(buf); actual != expected {
-		tb.Errorf("Input: %#q; Actual: %#q; Expected: %#q", input, actual, expected)
+		tb.Errorf("Input: %v; Actual: %v; Expected: %v", input, actual, expected)
 	}
 	output, buf2, err := goejs.DecodedFloatFromJSON([]byte(expected))
 	if err != nil {
-		tb.Errorf("Input: %#q: %s", input, err)
+		tb.Errorf("Input: %v: %s", input, err)
 	}
 	if math.IsNaN(input) != math.IsNaN(output) && math.IsInf(input, 1) != math.IsInf(output, 1) && math.IsInf(input, -1) != math.IsInf(output, -1) && input != output {
-		tb.Errorf("Input: %#q; Output: %#q", input, output)
+		tb.Errorf("Input: %v; Output: %v", input, output)
 	}
 	if actual, expected := string(buf2), ""; actual != expected {
-		tb.Errorf("Input: %#q; Remainder Actual: %#q; Expected: %#q", input, actual, expected)
+		tb.Errorf("Input: %v; Remainder Actual: %v; Expected: %v", input, actual, expected)
 	}
 }
 
