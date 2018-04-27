@@ -83,6 +83,8 @@ func TestString(t *testing.T) {
 
 	stringEnsureGood(t, "⌘ ", "\"\\u0001\\u2318 \"")
 	stringEnsureGood(t, "😂 ", "\"\\u0001\\uD83D\\uDE02 \"")
+	stringEnsureGood(t, `☺️`, `"\u263A\uFE0F"`)
+	stringEnsureGood(t, `日本語`, `"\u65E5\u672C\u8A9E"`)
 
 	stringEnsureBad(t, "\"\\uD83D\"", "surrogate pair", "")
 	stringEnsureBad(t, "\"\\uD83D\\u\"", "surrogate pair", "u\"")
