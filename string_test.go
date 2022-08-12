@@ -3,6 +3,9 @@ package goejs_test
 import (
 	"fmt"
 	"testing"
+	"unicode"
+	"unicode/utf16"
+	"unicode/utf8"
 
 	"github.com/karrick/goejs"
 )
@@ -92,3 +95,98 @@ func TestString(t *testing.T) {
 	stringEnsureBad(t, "\"\\uD83D\\uDE\"", "surrogate pair", "uDE\"")
 	stringEnsureBad(t, "\"\\uD83D\\uDE0\"", "invalid byte", "uDE0\"")
 }
+
+const fakeMessage = "Test logging, but use a somewhat realistic message length."
+
+func BenchmarkNew(b *testing.B) {
+	buf := make([]byte, 4096)
+	for i := 0; i < b.N; i++ {
+		buf = goejs.AppendEncodedJSONFromString(buf, fakeMessage)
+		buf = buf[:0]
+	}
+}
+
+func BenchmarkOld(b *testing.B) {
+	buf := make([]byte, 4096)
+	for i := 0; i < b.N; i++ {
+		buf = appendEncodedJSONFromString(buf, fakeMessage)
+		buf = buf[:0]
+	}
+}
+
+func appendEncodedJSONFromString(buf []byte, someString string) []byte {
+	buf = append(buf, '"') // prefix buffer with double quote
+	for _, r := range someString {
+		if escaped, ok := escapeSpecialJSON(byte(r)); ok {
+			buf = append(buf, escaped...)
+			continue
+		}
+		if r < utf8.RuneSelf && unicode.IsPrint(r) {
+			buf = append(buf, byte(r))
+			continue
+		}
+		// NOTE: Attempt to encode code point as UTF-16 surrogate pair
+		r1, r2 := utf16.EncodeRune(r)
+		if r1 != unicode.ReplacementChar || r2 != unicode.ReplacementChar {
+			// code point does require surrogate pair, and thus two uint16 values
+			buf = appendUnicodeHex(buf, uint16(r1))
+			buf = appendUnicodeHex(buf, uint16(r2))
+			continue
+		}
+		// Code Point does not require surrogate pair.
+		buf = appendUnicodeHex(buf, uint16(r))
+	}
+	return append(buf, '"') // postfix buffer with double quote
+}
+
+// escapeSpecialJSON
+func escapeSpecialJSON(b byte) ([]byte, bool) {
+	// NOTE: The following 8 special JSON characters must be escaped:
+	switch b {
+	case '"':
+		return sliceQuote, true
+	case '\\':
+		return sliceBackslash, true
+	case '/':
+		return sliceSlash, true
+	case '\b':
+		return sliceBackspace, true
+	case '\f':
+		return sliceFormfeed, true
+	case '\n':
+		return sliceNewline, true
+	case '\r':
+		return sliceCarriageReturn, true
+	case '\t':
+		return sliceTab, true
+	}
+	return nil, false
+}
+
+const hexDigits = "0123456789ABCDEF"
+
+func appendUnicodeHex(buf []byte, v uint16) []byte {
+	// Start with '\u' prefix:
+	buf = append(buf, sliceUnicode...)
+	// And tack on 4 hexidecimal digits:
+	buf = append(buf, hexDigits[(v&0xF000)>>12])
+	buf = append(buf, hexDigits[(v&0xF00)>>8])
+	buf = append(buf, hexDigits[(v&0xF0)>>4])
+	buf = append(buf, hexDigits[(v&0xF)])
+	return buf
+}
+
+// While slices in Go are never constants, we can initialize them once and reuse
+// them many times. We define these slices at library load time and reuse them
+// when encoding JSON.
+var (
+	sliceQuote          = []byte("\\\"")
+	sliceBackslash      = []byte("\\\\")
+	sliceSlash          = []byte("\\/")
+	sliceBackspace      = []byte("\\b")
+	sliceFormfeed       = []byte("\\f")
+	sliceNewline        = []byte("\\n")
+	sliceCarriageReturn = []byte("\\r")
+	sliceTab            = []byte("\\t")
+	sliceUnicode        = []byte("\\u")
+)
